@@ -4,9 +4,12 @@ Scripts used in the publication: [Origin and evolution of the bread wheat D geno
 
 Missing link finder pipeline is a tool developed to screen a large amount of samples sequenced at a shallow depth for detecting content of specific reference k-mers.
 
-The pipeline consists in two main steps:
-- k-mers sets preparation
-- Pairwise comparison
+The pipeline consists in the following steps:
+- Trimming reference raw reads
+- Create reference k-mers set
+- Create k-mers sets for samples to investigate
+- Pairwise comparison between reference k-mers set and k-mers sets for samples
+- Analysis of the output file
 
 ### k-mers sets preparation
 To create a specific reference k-mers set the first step is trimming the fastq files from which the k-mers needs to be counted. Trimming is a step required to reduce the amount of k-mers coming from sequencing errors, the pipeline might work as well without trimming, but the higher amount of k-mers would also raise the running time.
@@ -24,12 +27,13 @@ zcat clean/reference*.paired* | jellyfish count -C -m 51 -s 50G -t 32 /dev/fd/0 
 jellyfish dump -L 3 -c reference_kmers.jf | sed 's/ .*//' | sort > reference_kmers.txt
 ```
 
-Since the reference file and the many sample files need to be compared using the comm bash command also the sample files need to be in the same text sorted format. No filtering for the occurrences of k-mers is applied in sample files due to the low coverage.
+Since the reference file and the many sample files need to be compared using the comm bash command also the sample files need to be in the same text sorted format. DArTseq data used in the study were provided in FASTQCOL format, in order to prepare an input fasta file for Jellyfish a combination of cut and awk was used.
+No filtering for the occurrences of k-mers is applied in sample files due to the low coverage.
 ```bash
 # Example:
 for i in $(seq 1 80000)
 do
-zcat clean/sample${i}_*.paired* | jellyfish count -C -m 51 -s 50G -t 32 /dev/fd/0 -o sample${i}_kmers.jf
+zcat sample${i}.FASTQCOL.gz | cut -f 3 --delimiter="," | awk 'BEGIN{cont=0}{printf ">seq_%d\n",cont; print $0;cont++}' | jellyfish count -C -m 51 -s 50M -t 4 /dev/fd/0 -o sample${i}_kmers.jf
 jellyfish dump -c sample${i}_kmers.jf | sed 's/ .*//' | sort > sample${i}_kmers.txt
 done
 ```
@@ -48,8 +52,6 @@ AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGGAAACAC
 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGGGTTGGG
 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGGTGTTTA
 ```
-
-
 
 ### Pairwise comparison
 The comparison is performed with comm bash command counting the amount of common lines (= common k-mers) between the reference and each sample file, the value of similarity between the sets is estimated by counting the Jaccard index. The bash command wc using -l option is used to count the k-mers in the files since each k-mers lays in a single line.
@@ -86,6 +88,18 @@ sample6_kmers.txt
 sample7_kmers.txt
 sample8_kmers.txt
 sample9_kmers.txt
+```
+
+The output file "reference_vs_accessions.csv" will have the name of the sample k-mers set in the first column the number of k-mers in the sample k-mers set, in the third column is possible to find the number of common k-mers between sample and reference, the fourth column will contain the computed Jaccard distance.
+```bash
+sample21443_kmers.txt,5896384,89460,2.24205E-05
+sample104185_kmers.txt,5799752,97678,2.44807E-05
+sample115166_kmers.txt,2128868,202,5.06E-08
+sample11301_kmers.txt,8467296,72506,1.81597E-05
+sample495185_kmers.txt,6903174,112303,2.81385E-05
+sample519213_kmers.txt,6836817,115916,2.90443E-05
+sample14108_kmers.txt,3680032,63682,1.59688E-05
+sample11577_kmers.txt,8596722,126819,3.17622E-05
 ```
 
 
