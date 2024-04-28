@@ -11,14 +11,14 @@ The pipeline consists in the following steps:
 - Pairwise comparison between reference k-mers set and k-mers sets for samples
 - Analysis of the output file
 
-### k-mers sets preparation
+### Trimming reference raw reads
 To create a specific reference k-mers set the first step is trimming the fastq files from which the k-mers needs to be counted. Trimming is a step required to reduce the amount of k-mers coming from sequencing errors, the pipeline might work as well without trimming, but the higher amount of k-mers would also raise the running time.
 The trimming can be performed with any trimming tool, in our study we used [Trimmomatic](https://github.com/usadellab/Trimmomatic/tree/main) v. 0.38.
 ```bash
 # Example:
 java -jar $TRIMMOMATIC_JAR PE -threads 16 -phred33 raw/accession1_1.fastq raw/accession1_2.fastq clean/accession1_1.paired.fastq.gz clean/accession1_1.unpaired.fastq.gz clean/accession1_2.paired.fastq.gz clean/accession1_2.unpaired.fastq.gz LEADING:3 TRAILING:3 SLIDINGWINDOW:4:25 MINLEN:75
 ```
-
+### Create reference k-mers set
 The next step is to generate the reference k-mers set. We used [Jellyfish](https://github.com/gmarcais/Jellyfish) to generate canonical 51-mers, but any other software to count k-mers could be used. 
 The final form of the reference k-mers file needs to be a single column uncompressed text file containing all the sorted 51-mers.
 ```bash
@@ -26,7 +26,7 @@ The final form of the reference k-mers file needs to be a single column uncompre
 zcat clean/reference*.paired* | jellyfish count -C -m 51 -s 50G -t 32 /dev/fd/0 -o reference_kmers.jf
 jellyfish dump -L 3 -c reference_kmers.jf | sed 's/ .*//' | sort > reference_kmers.txt
 ```
-
+### Create k-mers sets for samples to investigate
 Since the reference file and the many sample files need to be compared using the comm bash command also the sample files need to be in the same text sorted format. DArTseq data used in the study were provided in FASTQCOL format, in order to prepare an input fasta file for Jellyfish a combination of cut and awk was used.
 No filtering for the occurrences of k-mers is applied in sample files due to the low coverage.
 ```bash
@@ -53,7 +53,7 @@ AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGGGTTGGG
 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGGTGTTTA
 ```
 
-### Pairwise comparison
+### Pairwise comparison between reference k-mers set and k-mers sets for samples
 The comparison is performed with comm bash command counting the amount of common lines (= common k-mers) between the reference and each sample file, the value of similarity between the sets is estimated by counting the Jaccard index. The bash command wc using -l option is used to count the k-mers in the files since each k-mers lays in a single line.
 For the comparisons we had a great improvement of the performance after loading to the memory the full reference file, reading such big files (around 100 Gb) can be quite intense reading directly from the disk.
 The for loop is structured to load the reference file once and after screen over multiple sample k-mers files.
@@ -89,7 +89,7 @@ sample7_kmers.txt
 sample8_kmers.txt
 sample9_kmers.txt
 ```
-
+### Analysis of the output file
 The output file "reference_vs_accessions.csv" will have the name of the sample k-mers set in the first column the number of k-mers in the sample k-mers set, in the third column is possible to find the number of common k-mers between sample and reference, the fourth column will contain the computed Jaccard distance.
 ```bash
 sample21443_kmers.txt,5896384,89460,2.24205E-05
