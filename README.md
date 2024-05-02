@@ -6,13 +6,13 @@ Missing Link Finder is a pipeline developed to screen a large number of samples 
 
 The pipeline includes in the following steps:
 - Trimming of reference raw reads
-- Create reference k-mers set
+- Create reference k-mer set
 - Create k-mer sets for samples to investigate (sample k-mer sets)
 - Pairwise comparison between reference k-mer set and sample k-mer sets for samples
 - Analysis of the output file
 
 ### Trimming of reference raw reads
-To create a specific reference k-mers set, the first step consists in trimming the fastq files from which the k-mers needs to be counted. Trimming is a step required to reduce the amount of k-mers coming from sequencing errors. The pipeline might work without trimming, but the higher amount of k-mers would raise the running time.
+To create a specific reference k-mer set, the first step consists in trimming the fastq files from which the k-mers needs to be counted. Trimming is a step required to reduce the amount of k-mers coming from sequencing errors. The pipeline might work without trimming, but the higher amount of k-mers would raise the running time.
 The trimming can be performed with any trimming tool, in our study we used [Trimmomatic](https://github.com/usadellab/Trimmomatic/tree/main) v. 0.38.
 ```bash
 # Example:
@@ -20,7 +20,7 @@ java -jar $TRIMMOMATIC_JAR PE -threads 16 -phred33 raw/accession1_1.fastq raw/ac
 ```
 ### Create reference k-mer set
 The next step is to generate the reference k-mer set. We used [Jellyfish](https://github.com/gmarcais/Jellyfish) to generate canonical 51-mers, but any other software to count k-mers could be used. 
-The final form of the reference k-mers file needs to be a single column uncompressed text file containing all the sorted 51-mers.
+The final form of the reference k-mer file needs to be a single column uncompressed text file containing all the sorted 51-mers.
 ```bash
 # Example:
 zcat clean/reference*.paired* | jellyfish count -C -m 51 -s 50G -t 32 /dev/fd/0 -o reference_kmers.jf
@@ -53,7 +53,7 @@ AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGGGTTGGG
 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGGTGTTTA
 ```
 
-### Pairwise comparison between reference k-mers set and sample k-mer sets
+### Pairwise comparison between reference k-mer set and sample k-mer sets
 The comparison is performed with comm bash command counting the amount of common lines (= common k-mers) between the reference and each sample file. The value of similarity between the sets is estimated by counting the Jaccard index. The bash command wc using -l option is used to count the k-mers in the files since each k-mer occupies a single line.
 For the comparisons we achieved a good performance improvement after loading the full reference file to the memory.
 The for loop is structured to load the reference file once and after screen over multiple sample k-mer files.
