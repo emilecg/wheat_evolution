@@ -182,7 +182,7 @@ for namels in 'landmark','chinese_spring','CWI86942':
             stjk = 2 * math.tan(((1/(408*2.3/math.pi*2))*(tjks))+math.pi/1.7)
             sli3 = 2 * math.tan(((1/(11*2.3/math.pi*2))*(li3s))+math.pi/1.7)
 
-            diction = {'L3': sli3, 'L2E-1': sgil, 'L2W-1': scau, 'L2W-2': stkm, 'L2E-1' : sgor, 'L1W': sarm, 'L1E-Y': schi, 'L1E-X' : stjk}
+            diction = {'L3': sli3, 'L2E-1': sgil, 'L2W-1': scau, 'L2W-2': stkm, 'L2E-2' : sgor, 'L1W': sarm, 'L1E-Y': schi, 'L1E-X' : stjk}
             slist_9 = [arms, chis, tjks, gils, caus, tkms, gors]
             #computing the sum of the pairwise products of the element of the list as a score for accuracy of the prediction, if only one population is present the score is 0
             soccf = sum(a*b for a,b in combinations(slist_9,2))
