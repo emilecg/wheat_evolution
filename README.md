@@ -1,4 +1,4 @@
-Scripts used in the publication: [Origin and evolution of the bread wheat D genome](https://doi.org/10.1101/2023.11.29.568958)
+Scripts used in the publication: [Origin and evolution of the bread wheat D genome](https://doi.org/10.1038/s41586-024-07808-z)
 
 # Missing Link Finder
 
@@ -114,6 +114,6 @@ Input files defined inside the script are:
 
 The files are available in subpopulations_finder_data directory of this repository. In the same directory a test file with IBSpy results for CWI86942 genome is also provided.
 The script is designed to run through 3 rounds of the population structure with K=9, K=15 and K=22. We reported and analysed only the results from K=9.
-Details about the functioning of the script can be found in the supplementary notes of the [manuscript](https://doi.org/10.1101/2023.11.29.568958).
+Details about the functioning of the script can be found in the supplementary notes of the [manuscript](https://doi.org/10.1038/s41586-024-07808-z).
 
 
